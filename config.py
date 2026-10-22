@@ -1,13 +1,15 @@
+#Importa biblitecas para comunicação com o sistema e carregamento do .env
 import os
 import dotenv
 
 dotenv.load_dotenv()
 
+#Configurações gerais do sistema
 DEBUG = True
 App_NAME = "PassGen"
 Version = "1.0.0"
 
-#Banco
+#Configurações do Banco
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
 DB_PORT = os.getenv("DB_PORT")
