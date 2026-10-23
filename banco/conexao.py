@@ -17,9 +17,12 @@ class conexao_sql:
         DB_PASSWORD = os.getenv("DB_PASSWORD")
         DB_NAME = os.getenv("DB_NAME")
 
+        self.conexao = None
+        self.cursor = None
+        
         try:
             #Estabelece a conexão com o banco de dados
-            conexao = mysql.connector.connect(
+            self.conexao = mysql.connector.connect(
                 host=DB_HOST,
                 user=DB_USER,
                 port=DB_PORT,
@@ -30,14 +33,9 @@ class conexao_sql:
             print("Conexão com o banco de dados estabelecida com sucesso!")
 
             #Cria um cursor para dar comandos no banco de dados
-            cursor = conexao.cursor()
-            cursor.execute("SELECT version()")
-            versao = cursor.fetchone()
-            print(f"Versão do banco de dados: {versao[0]}")
-
-            #fecha a conexão com o banco de dados
-            cursor.close()
-            conexao.close()
+            self.cursor = self.conexao.cursor()
+            self.cursor.execute("")
+            
 
         #Se não conectar gera exessão
         except mysql.connector.Error as erro:
@@ -59,9 +57,12 @@ class conexao_sql:
             self.conexao.close()
     
     #Função para executar comandos SQL
-    def comando_sql(self, comando):
+    def comando_sql(self, comando, params=None):
         try:
-            self.cursor.execute(comando)
+            if params:
+                self.cursor.execute(comando, params)
+            else:
+                self.cursor.execute(comando)
             self.conexao.commit()
             print("Comando SQL executado com sucesso!")
         except mysql.connector.Error as erro:
