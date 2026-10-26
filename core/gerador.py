@@ -15,10 +15,10 @@ def gerar_senha(comprimento, incluir_numeros, incluir_caracteres_especiais):
     #coloca dentro da variavel caracteres todas as letras do alfabeto
     caracteres = string.ascii_letters  # Letras maiúsculas e minúsculas
 
-    if incluir_numeros:
+    if incluir_numeros == True:
         caracteres += string.digits  # Adiciona números
 
-    if incluir_caracteres_especiais:
+    if incluir_caracteres_especiais == True:
         caracteres += string.punctuation  # Adiciona caracteres especiais
 
     senha = ''.join(random.choice(caracteres) for _ in range(comprimento))

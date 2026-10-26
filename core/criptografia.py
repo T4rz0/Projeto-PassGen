@@ -1,5 +1,6 @@
 import sys
 import os
+from cryptography.fernet import Fernet
 
 # Adiciona a raiz do projeto (um nível acima) ao caminho de busca do Python
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -12,7 +13,7 @@ def gerar_salt():
     
 
 #funcao para criptografar a senha mestre com o salt gerado
-def hash_senha(senha, salt):
+def hash_senha_mestre(senha, salt):
     # Gera o hash da senha usando bcrypt com o salt fornecido
     hashed = bcrypt.hashpw(senha.encode('utf-8'), salt)
     return hashed
@@ -31,8 +32,24 @@ def armazenar_hash_senha(salt,hashed):
     except Exception as e:
         print(f"Erro ao armazenar hash da senha: {e}")
         
-     
-        
+#Criptografia senha normal
+def obter_chave():
+    try:
+        chave = os.getenv("CHAVE_FERNET") 
+        return chave.encode()
+    except Exception as e:
+        print(f"Não foi possivel obter a chave {e}")
+
+def criptografar_senha(senha_limpa):
+    f = Fernet(obter_chave())
+    token = f.encrypt(senha_limpa.encode('utf-8'))
+    return token.decode('utf-8')       
+
+def descriptografar_senha(senha_cripto):
+    f = Fernet(obter_chave())
+    senha_descripto = f.decrypt(senha_cripto.encode('utf-8'))
+    return senha_descripto.decode('utf-8')
+
 #Funcão principal
 if __name__ == "__main__":
     senha = input("Digite a senha mestre: ")
@@ -41,7 +58,7 @@ if __name__ == "__main__":
     senha_hash = None
     
     try:
-        senha_hash = hash_senha(senha, salt)
+        senha_hash = hash_senha_mestre(senha, salt)
     except Exception as e:
         print(f"Erro ao gerar hash da senha: {e}")
     try:
