@@ -11,6 +11,8 @@ CREATE TABLE CREDENCIAIS (
     CRIADO TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+SELECT * FROM credenciais;
+
 DROP TABLE credenciais;
 
 -- Criar tabela para configurações básicas como a senha master
