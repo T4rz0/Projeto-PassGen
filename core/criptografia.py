@@ -26,6 +26,12 @@ def armazenar_hash_senha(salt,hashed):
         sql = conexao.conexao_sql()
         cursor = sql.get_cursor()
         cursor.execute("USE passgen")
+        
+        cursor.execute("SELECT ver_senham FROM configuracao LIMIT 1")
+        resul = cursor.fetchone()
+        if resul is not None and resul[0] is not None:
+            sql.close_conexao()
+            raise Exception ("Já existe uma Senha Mestre cadastrada!")
         cursor.execute("INSERT INTO configuracao (salt, ver_senham) VALUES (%s, %s)", (salt, hashed))
         sql.conexao.commit()
         sql.close_conexao()

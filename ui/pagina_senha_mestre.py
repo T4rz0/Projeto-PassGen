@@ -1,9 +1,14 @@
 import tkinter as tk
 from tkinter import messagebox
 from core import criptografia as cripto
+from banco import conexao
 
 class TelaCriarSenhaMestre:
     def __init__(self, master_window):
+        if self.verificar_existencia_senha():
+            messagebox.showwarning("Atenção","Já existe uma Senha Mestre")
+            return
+        
         self.top = tk.Toplevel(master_window)
         self.top.title("PassGen - Criar Senha Mestre")
         self.top.geometry("350x250")
@@ -39,6 +44,22 @@ class TelaCriarSenhaMestre:
             command=self.salvar_senha_mestre
         )
         self.btn_salvar.pack(pady=15)
+        
+    def verificar_existencia_senha(self):
+            """Verifica no banco se já existe alguma senha mestre cadastrada."""
+            try:
+                sql = conexao.conexao_sql()
+                cursor = sql.get_cursor()
+                cursor.execute("USE passgen")
+                cursor.execute("SELECT COUNT(*) FROM configuracao")
+                resultado = cursor.fetchone()
+                sql.close_conexao()
+                
+                if resultado and resultado[0] > 0:
+                    return True
+            except Exception as e:
+                print(f"Erro ao verificar senha mestre: {e}")
+            return False
 
     def salvar_senha_mestre(self):
         senha = self.txt_senha.get()

@@ -6,26 +6,31 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from banco import conexao
 import bcrypt
 
-def verificar_senha(senha):
+def verificar_senha(senha_escrita):
 
     sql = conexao.conexao_sql()
     cursor = sql.get_cursor()
-    cursor.execute("USE passgen")
-    cursor.execute("SELECT salt FROM configuracao WHERE id = 1")
-    stored_salt = cursor.fetchone()
-    cursor.execute("SELECT ver_senham FROM configuracao WHERE id = 1")
-    stored_hash = cursor.fetchone()
-    
     try:
-       #Função para verificar a senha mestre usando o salt armazenado no banco de dados
-        if stored_salt and stored_hash:
-            stored_salt = stored_salt[0]
-            stored_hash = stored_hash[0]
-            if bcrypt.checkpw(senha.encode('utf-8'), stored_hash):
+        cursor.execute("USE passgen")
+        cursor.execute("SELECT ver_senham FROM configuracao")
+        senhas_mestre = cursor.fetchall()
+    
+       #Função para verificar a senha mestre usando o salt 
+        if not senhas_mestre:
+           sql.close_conexao()
+           print("Não existe nenhuma senha mestre")
+           return False
+        for linha in senhas_mestre:
+            hash_armazenado = bytes(linha[0])
+            
+            #Faz a checagem descriptografando com base no hash
+            if bcrypt.checkpw(senha_escrita.encode('utf-8'), hash_armazenado):
                 print("Senha mestre correta!")
+                sql.close_conexao()
                 return True
             else:
                 print("Senha mestre incorreta!")
+                sql.close_conexao()
                 return False
     except Exception as e:
         print(f"Erro ao verificar a senha: {e}")   
