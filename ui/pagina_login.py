@@ -5,6 +5,7 @@ from tkinter import messagebox
 import core.autenticação as authentic
 from ui.pagina_main import TelaMain
 from ui.pagina_senha_mestre import TelaCriarSenhaMestre
+from banco import conexao
 
 class TelaLogin:
     def __init__(self, master):
@@ -45,6 +46,33 @@ class TelaLogin:
             root_main.mainloop()
         except Exception as e:
             print("A senha mestre não coincide") 
+            
+def verificar_existencia_senha(self):
+        """Método baseado na sua arquitetura para checar se há configuração no banco."""
+        sql = None
+        try:
+            sql = conexao.conexao_sql()
+            cursor = sql.get_cursor()
+            cursor.execute("USE passgen")
+            cursor.execute("SELECT COUNT(*) FROM configuracao")
+            resultado = cursor.fetchone()
+            
+            if resultado and resultado[0] > 0:
+                return True
+        except Exception as e:
+            print(f"Erro ao verificar senha mestre: {e}")
+        finally:
+            if sql:
+                sql.close_conexao()
+        return False
+
+def checar_primeiro_acesso(self):
+        """Exibe um aviso automático caso o banco de dados esteja sem senha mestre."""
+        if not self.verificar_existencia_senha():
+            messagebox.showwarning(
+                "Atenção - Primeiro Acesso", 
+                "Nenhuma Senha Mestre encontrada no banco de dados!\nPor favor, cadastre uma nova senha."
+            )
 
 
 if __name__ == "__main__":
