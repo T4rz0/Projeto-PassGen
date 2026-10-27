@@ -5,6 +5,8 @@ from cryptography.fernet import Fernet
 
 #Marca o diretório principal para encontrar os arquivos locais necessários para o uso
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 from banco import conexao
 from core import criptografia as cripto
 from core import gerador
