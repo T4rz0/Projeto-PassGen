@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from tkinter import messagebox
 import core.autenticação as authentic
+from ui.pagina_main import TelaMain
 from ui.pagina_senha_mestre import TelaCriarSenhaMestre
 
 class TelaLogin:
@@ -38,7 +39,10 @@ class TelaLogin:
         
         try:
           if authentic.verificar_senha(senha) == True:
-            tk.Label(text="Senha correta")
+            self.master.destroy() # Fecha a tela de login
+            root_main = tk.Tk()
+            TelaMain(root_main)
+            root_main.mainloop()
         except Exception as e:
             print("A senha mestre não coincide") 
 
@@ -46,4 +50,5 @@ class TelaLogin:
 if __name__ == "__main__":
     root = tk.Tk()
     app = TelaLogin(root)
+    
     root.mainloop()
