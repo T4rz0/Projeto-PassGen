@@ -1,5 +1,3 @@
-import os
-import sys
 import tkinter as tk
 from tkinter import messagebox
 import core.autenticação as authentic
@@ -14,6 +12,7 @@ class TelaLogin:
         self.master.geometry("300x200")
         self.master.resizable(False, False)
 
+        self.checar_primeiro_acesso()
 
         # Rótulo e Campo de Senha
         self.lbl_senha = tk.Label(master, text="Insira a Senha Mestre:")
@@ -37,18 +36,19 @@ class TelaLogin:
 
     def verificar_login(self, *args):
         senha = self.txt_senha.get()
-        
         try:
-          if authentic.verificar_senha(senha) == True:
-            self.master.destroy() # Fecha a tela de login
-            root_main = tk.Tk()
-            TelaMain(root_main)
-            root_main.mainloop()
+            if authentic.verificar_senha(senha) == True:
+                self.master.destroy() # Fecha a tela de login
+                root_main = tk.Tk()
+                TelaMain(root_main)
+                root_main.mainloop()
+            else:
+                messagebox.showerror("Erro de login","A senha não coincide")
         except Exception as e:
             print("A senha mestre não coincide") 
             
-def verificar_existencia_senha(self):
-        """Método baseado na sua arquitetura para checar se há configuração no banco."""
+    def verificar_existencia_senha(self):
+
         sql = None
         try:
             sql = conexao.conexao_sql()
@@ -66,12 +66,13 @@ def verificar_existencia_senha(self):
                 sql.close_conexao()
         return False
 
-def checar_primeiro_acesso(self):
+    def checar_primeiro_acesso(self):
         """Exibe um aviso automático caso o banco de dados esteja sem senha mestre."""
         if not self.verificar_existencia_senha():
             messagebox.showwarning(
                 "Atenção - Primeiro Acesso", 
-                "Nenhuma Senha Mestre encontrada no banco de dados!\nPor favor, cadastre uma nova senha."
+                "Nenhuma Senha Mestre encontrada no banco de dados!\nPor favor, cadastre uma nova senha.",
+                parent=self.master
             )
 
 
