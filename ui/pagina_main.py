@@ -5,8 +5,10 @@ from banco import conexao
 from core import criptografia as cripto
 from core.gerador import gerar_senha
 
-# Largura (em caracteres) de cada coluna: ID, Site, E-mail, Senha
-LARGURAS = (5, 20, 26, 26)
+# Largura (em pixels) de cada coluna: ID, Site, E-mail, Senha
+LARGURAS = (50, 150, 210, 210)
+FONTE = ("Consolas", 10)
+FONTE_CAB = ("Consolas", 10, "bold")
 COR_NORMAL = "#ffffff"
 COR_SELECIONADA = "#cfe8ff"
 
@@ -36,22 +38,25 @@ class TelaMain:
         self.frame_cabecalho = tk.Frame(master)
         self.frame_cabecalho.pack(padx=10, pady=(8, 0), anchor="w")
         for col, (nome, larg) in enumerate(zip(("ID", "Site", "E-mail", "Senha"), LARGURAS)):
+            self.frame_cabecalho.columnconfigure(col, minsize=larg)
             tk.Label(
-                self.frame_cabecalho, text=nome, width=larg,
-                font=("Arial", 9, "bold"), bg="#e0e0e0", relief="groove"
-            ).grid(row=0, column=col, padx=1)
+                self.frame_cabecalho, text=nome, font=FONTE_CAB,
+                bg="#e0e0e0", relief="groove", pady=3
+            ).grid(row=0, column=col, sticky="ew", padx=1)
 
         # Área rolável com as linhas
         self.frame_tabela = tk.Frame(master)
         self.frame_tabela.pack(padx=10, pady=2, fill=tk.BOTH, expand=True)
 
-        self.canvas = tk.Canvas(self.frame_tabela, height=240, highlightthickness=0)
+        self.canvas = tk.Canvas(self.frame_tabela, height=240, width=sum(LARGURAS) + 10, highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.frame_tabela, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.inner = tk.Frame(self.canvas)
+        for col, larg in enumerate(LARGURAS):
+            self.inner.columnconfigure(col, minsize=larg)
         self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
         self.inner.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.bind_all("<MouseWheel>", self._rolar_mouse)
@@ -83,14 +88,14 @@ class TelaMain:
 
     def _criar_campo(self, linha, coluna, texto, largura, id_cred):
         ent = tk.Entry(
-            self.inner, width=largura, justify="center",
-            relief="flat", borderwidth=1,
+            self.inner, width=1, justify="center", font=FONTE,
+            relief="solid", borderwidth=1,
             readonlybackground=COR_NORMAL,
             disabledforeground="black",
         )
         ent.insert(0, str(texto))
         ent.configure(state="readonly")  # selecionável e copiável, mas não editável
-        ent.grid(row=linha, column=coluna, padx=1, pady=1)
+        ent.grid(row=linha, column=coluna, sticky="ew", padx=1, pady=0, ipady=3)
 
         ent.bind("<Button-1>", lambda e, i=id_cred: self.selecionar_linha(i), add="+")
         ent.bind("<Double-Button-1>", self._selecionar_tudo)
