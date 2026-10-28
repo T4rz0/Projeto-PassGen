@@ -2,7 +2,7 @@ Projeto criado por Lucas Ferreira para entrevista técnica para Agili software.
 
 
 
-PassGen é uma aplicação de geração e armazenamento de senhas ultilizando python e banco de dados mysql
+PassGen é uma aplicação de geração e armazenamento de senhas utilizando python e banco de dados mysql
 
 
 
@@ -19,4 +19,13 @@ O usuário pode também copiar suas credenciais para reutiliza-las em sites, dom
 
 
 É possível também excluir as credenciais selecionando-as e altera-las
+
+
+
+###### **Para usar o aplicativo é necessário:**
+
+* Python 3.15.2
+* Uma conexão MySQL com o script em Projeto PassGen/banco/PassGen.sql
+
+
 
