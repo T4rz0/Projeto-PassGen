@@ -1,8 +1,12 @@
+#Importa o tkinter para a GUI
 import tkinter as tk
 from tkinter import messagebox
+
+#Importa cada classe minha
 from core import criptografia as cripto
 from banco import conexao
 
+#Classe da tela para cadastrar uma senha mestre
 class TelaCriarSenhaMestre:
     def __init__(self, master_window):
         if self.verificar_existencia_senha():
@@ -14,7 +18,7 @@ class TelaCriarSenhaMestre:
         self.top.geometry("350x250")
         self.top.resizable(False, False)
         
-        # Torna a janela modal (prende o foco nela)
+        # Foca na tela
         self.top.grab_set()
 
         # Título
@@ -25,13 +29,13 @@ class TelaCriarSenhaMestre:
         )
         self.lbl_titulo.pack(pady=10)
 
-        # Campo: Senha Mestre
+        # Campo da senha mestre
         self.lbl_senha = tk.Label(self.top, text="Nova Senha Mestre:")
         self.lbl_senha.pack(pady=2)
         self.txt_senha = tk.Entry(self.top, show="*", width=30)
         self.txt_senha.pack(pady=5)
 
-        # Campo: Confirmar Senha Mestre
+        # Campo de confirmação
         self.lbl_confirmar = tk.Label(self.top, text="Confirme a Senha Mestre:")
         self.lbl_confirmar.pack(pady=2)
         self.txt_confirmar = tk.Entry(self.top, show="*", width=30)
@@ -44,9 +48,9 @@ class TelaCriarSenhaMestre:
             command=self.salvar_senha_mestre
         )
         self.btn_salvar.pack(pady=15)
-        
+     
+    #Funcao para verificar se já existe alguma senha mestre   
     def verificar_existencia_senha(self):
-            """Verifica no banco se já existe alguma senha mestre cadastrada."""
             try:
                 sql = conexao.conexao_sql()
                 cursor = sql.get_cursor()
@@ -61,6 +65,7 @@ class TelaCriarSenhaMestre:
                 print(f"Erro ao verificar senha mestre: {e}")
             return False
 
+    #Função para armazenar a senha mestre
     def salvar_senha_mestre(self):
         senha = self.txt_senha.get()
         confirmacao = self.txt_confirmar.get()

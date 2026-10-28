@@ -5,9 +5,10 @@ import dotenv
 #Importa a comunicação com SQL
 import mysql.connector
 
+#Cria a classe de conexão
 class conexao_sql:
 
-    #Contrutor da conexão
+    #Contrutor
     def __init__(self):
         dotenv.load_dotenv()
 
@@ -33,14 +34,12 @@ class conexao_sql:
             #Cria um cursor para dar comandos no banco de dados
             self.cursor = self.conexao.cursor()
 
-            
-
-        #Se não conectar gera exessão
+        #Se não conectar gera erro
         except mysql.connector.Error as erro:
             print(f"Erro ao conectar ao banco de dados: {erro}")
     
     
-    #Função para gerar cursor/comando
+    #Função para pegar cursor/comando
     def get_cursor(self):
          return self.cursor
     

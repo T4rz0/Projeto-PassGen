@@ -1,17 +1,22 @@
+#Importa comunicação com o sistema operacional
 import os
 import sys
+
+#Importa o tabulate para exibir os dados de forma tabelada
 from tabulate import tabulate
+
+#Importa a criptografia Fernet
 from cryptography.fernet import Fernet
 
 #Marca o diretório principal para encontrar os arquivos locais necessários para o uso
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-
+#Impota as classes criadas por mim
 from banco import conexao
 from core import criptografia as cripto
 from core import gerador
 
-#Add opção de selecionar se quer com senha digitada ou senha gerada
+#Função de criar a credêncial por senha digitada
 def create(site, email, senha):
     try:
         sql = conexao.conexao_sql()
@@ -26,7 +31,8 @@ def create(site, email, senha):
         print("Credênciais salvas com sucesso!")
     except Exception as e:
         print(f"Não foi possivel adicionar ao banco {e}")
-    
+
+#Função de criar a credêncial com a senha gerada pelo app    
 def create_gerada(site, email):
     try:
         sql = conexao.conexao_sql()
@@ -190,7 +196,7 @@ def procura_por_site(site):
         print(f"Não foi possivel obter as credênciais {e}")
         return []
         
-#Menu simples para teste no terminal
+#Menu simples para teste de cada função no terminal
 def menu_teste():
     while True:
         print("\n=== Menu de teste ===")

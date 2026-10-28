@@ -1,10 +1,18 @@
+#Importa o tkinter para a GUI do app
 import tkinter as tk
 from tkinter import messagebox
+
+#importa a autenticação criada
 import core.autenticação as authentic
+
+#Importa as páginas
 from ui.pagina_main import TelaMain
 from ui.pagina_senha_mestre import TelaCriarSenhaMestre
+
+#Importa a conexão criada
 from banco import conexao
 
+#Classe da tela de login
 class TelaLogin:
     def __init__(self, master):
         self.master = master
@@ -12,6 +20,7 @@ class TelaLogin:
         self.master.geometry("300x200")
         self.master.resizable(False, False)
 
+        #Checa o se é o primeiro acesso
         self.checar_primeiro_acesso()
 
         # Rótulo e Campo de Senha
@@ -25,30 +34,30 @@ class TelaLogin:
         self.btn_entrar = tk.Button(master, text="Entrar", command=self.verificar_login)
         self.btn_entrar.pack(pady=15)
         
-        
         # Botão de Criar senha
         self.btn_CriarSenha = tk.Button(master, text="Criar senha", command=self.CriarSenha)
         self.btn_CriarSenha.pack(pady=15)
         
+    #Vai pra tela de criação de senha mestre se não tiver senha mestre
     def CriarSenha(self):
         TelaCriarSenhaMestre(self.master)
         
-
+    #Verifica o login
     def verificar_login(self):
         senha = self.txt_senha.get()
         try:
-            if authentic.verificar_senha(senha) == True:
-                self.master.destroy() # Fecha a tela de login
-                root_main = tk.Tk()
-                TelaMain(root_main)
-                root_main.mainloop()
+            if authentic.verificar_senha(senha) == True: #Se estiver correto
+                self.master.destroy() #Fecha a tela de login
+                root_main = tk.Tk() #Chama uma tela
+                TelaMain(root_main) #Vai pra main
+                root_main.mainloop() #Começa o loop
             else:
                 messagebox.showerror("Erro de login","A senha não coincide")
         except Exception as e:
             print("A senha mestre não coincide") 
-            
+    
+    #verifica se já existe senha mestre        
     def verificar_existencia_senha(self):
-
         sql = None
         try:
             sql = conexao.conexao_sql()
@@ -57,6 +66,7 @@ class TelaLogin:
             cursor.execute("SELECT COUNT(*) FROM configuracao")
             resultado = cursor.fetchone()
             
+            #Se tiver mais que 0 no banco beleza
             if resultado and resultado[0] > 0:
                 return True
         except Exception as e:
@@ -66,8 +76,9 @@ class TelaLogin:
                 sql.close_conexao()
         return False
 
+    #Ver se foi o primeiro acesso
     def checar_primeiro_acesso(self):
-        """Exibe um aviso automático caso o banco de dados esteja sem senha mestre."""
+        #Se não for verdadeira a existencia de uma senha dispara um aviso
         if not self.verificar_existencia_senha():
             messagebox.showwarning(
                 "Atenção - Primeiro Acesso", 

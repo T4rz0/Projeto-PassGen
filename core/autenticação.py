@@ -1,6 +1,7 @@
 from banco import conexao
 import bcrypt
 
+#Função para verificar a senha
 def verificar_senha(senha_escrita):
 
     sql = conexao.conexao_sql()
@@ -30,7 +31,7 @@ def verificar_senha(senha_escrita):
     except Exception as e:
         print(f"Erro ao verificar a senha: {e}")   
         
-#Função principal
+#Função principal para testar a verificação
 if __name__ == "__main__":
     senha = input("Digite sua senha:")
     verificar_senha(senha)

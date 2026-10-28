@@ -1,18 +1,20 @@
+#Importa o TKinter para a GUI
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+#Importa classes e metodos meus
 from banco import conexao
 from core import criptografia as cripto
 from core.gerador import gerar_senha
 
-# Largura (em pixels) de cada coluna: ID, Site, E-mail, Senha
+# Largura da tabela e de cada coluna: ID, Site, E-mail, Senha
 LARGURAS = (50, 150, 210, 210)
 FONTE = ("Consolas", 10)
 FONTE_CAB = ("Consolas", 10, "bold")
 COR_NORMAL = "#ffffff"
 COR_SELECIONADA = "#cfe8ff"
 
-
+#Classe da tela
 class TelaMain:
     def __init__(self, master):
         self.master = master
@@ -21,16 +23,16 @@ class TelaMain:
         self.master.resizable(False, False)
 
         self.id_selecionado = None
-        self.linhas = {}  # id_cred -> lista de Entry da linha
+        self.linhas = {}
 
         # Título
         self.lbl_titulo = tk.Label(master, text="Suas Senhas Armazenadas", font=("Arial", 14, "bold"))
         self.lbl_titulo.pack(pady=10)
 
-        # Dica de uso
+        # Subtexto para dica de uso
         tk.Label(
             master,
-            text="Clique em uma linha para selecioná-la. Selecione o texto (duplo clique = campo todo) e use Ctrl+C.",
+            text="Clique em uma linha para selecioná-la. Selecione o texto (duplo clique = campo todo) e use copie",
             fg="gray",
         ).pack()
 
@@ -76,16 +78,17 @@ class TelaMain:
 
         self.carregar_credenciais()
 
-    # ---------- Utilidades da grade ----------
+    #Função de rolar o mouse na tabela
     def _rolar_mouse(self, event):
         self.canvas.yview_scroll(int(-event.delta / 120), "units")
 
+    #função de selecionar cada credêncial com o duplo clique
     def _selecionar_tudo(self, event):
-        """Duplo clique / Ctrl+A: seleciona o conteúdo inteiro do campo."""
         event.widget.select_range(0, tk.END)
         event.widget.icursor(tk.END)
         return "break"
 
+    #Cria cada campo da tabela com as credênciais
     def _criar_campo(self, linha, coluna, texto, largura, id_cred):
         ent = tk.Entry(
             self.inner, width=1, justify="center", font=FONTE,
@@ -102,8 +105,8 @@ class TelaMain:
         ent.bind("<Control-a>", self._selecionar_tudo)
         return ent
 
+    #Destaca a linha selecionada
     def selecionar_linha(self, id_cred):
-        # Remove destaque da linha anterior
         if self.id_selecionado in self.linhas:
             for ent in self.linhas[self.id_selecionado]:
                 ent.configure(readonlybackground=COR_NORMAL)
@@ -111,7 +114,7 @@ class TelaMain:
         for ent in self.linhas.get(id_cred, []):
             ent.configure(readonlybackground=COR_SELECIONADA)
 
-    # ---------- Dados ----------
+    #Carrega nos campos da tabela as credênciasis
     def carregar_credenciais(self):
         for widget in self.inner.winfo_children():
             widget.destroy()
@@ -143,6 +146,7 @@ class TelaMain:
             if sql:
                 sql.close_conexao()
 
+    #Tela adicionar credêncial
     def abrir_janela_adicionar(self):
         self.top_add = tk.Toplevel(self.master)
         self.top_add.title("PassGen - Adicionar Senha")
@@ -168,11 +172,13 @@ class TelaMain:
         self.btn_salvar = tk.Button(self.top_add, text="Salvar", bg="#2196F3", fg="white", command=self.salvar_nova_credencial)
         self.btn_salvar.pack(pady=10)
 
+    #Preenche o campo da senha com a senha gerada
     def preencher_senha_gerada(self):
         senha_aleatoria = gerar_senha(12, True, True)
         self.txt_senha_nova.delete(0, tk.END)
         self.txt_senha_nova.insert(0, senha_aleatoria)
 
+    #Funcão para salvar a credêncial
     def salvar_nova_credencial(self):
         site = self.txt_site.get()
         email = self.txt_email.get()
@@ -202,6 +208,7 @@ class TelaMain:
             if sql:
                 sql.close_conexao()
 
+    #Função para excluir a credêncial
     def excluir_credencial(self):
         if self.id_selecionado is None:
             messagebox.showwarning("Atenção", "Clique em uma linha para selecioná-la antes de excluir.")
