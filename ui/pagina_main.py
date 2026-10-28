@@ -1,6 +1,7 @@
 #Importa o TKinter para a GUI
 import tkinter as tk
 from tkinter import ttk, messagebox
+import mysql.connector  
 
 #Importa classes e metodos meus
 from banco import conexao
@@ -67,16 +68,17 @@ class TelaMain:
         self.frame_botoes = tk.Frame(master)
         self.frame_botoes.pack(pady=15)
 
-        self.btn_adicionar = tk.Button(self.frame_botoes, text="Adicionar Nova Senha", width=20, bg="#4CAF50", fg="white", command=self.abrir_janela_adicionar)
+        self.btn_adicionar = tk.Button(self.frame_botoes, text="Adicionar Nova Senha", width=18, bg="#4CAF50", fg="white", command=self.abrir_janela_adicionar)
         self.btn_adicionar.grid(row=0, column=0, padx=5)
 
-        self.btn_excluir = tk.Button(self.frame_botoes, text="Excluir Selecionado", width=18, bg="#f44336", fg="white", command=self.excluir_credencial)
-        self.btn_excluir.grid(row=0, column=1, padx=5)
+        self.btn_editar = tk.Button(self.frame_botoes, text="Editar Selecionado", width=16, bg="#FF9800", fg="white", command=self.abrir_janela_editar)
+        self.btn_editar.grid(row=0, column=1, padx=5)
 
-        self.btn_atualizar = tk.Button(self.frame_botoes, text="Atualizar Lista", width=15, command=self.carregar_credenciais)
-        self.btn_atualizar.grid(row=0, column=2, padx=5)
+        self.btn_excluir = tk.Button(self.frame_botoes, text="Excluir Selecionado", width=16, bg="#f44336", fg="white", command=self.excluir_credencial)
+        self.btn_excluir.grid(row=0, column=2, padx=5)
 
-        self.carregar_credenciais()
+        self.btn_atualizar = tk.Button(self.frame_botoes, text="Atualizar Lista", width=13, command=self.carregar_credenciais)
+        self.btn_atualizar.grid(row=0, column=3, padx=5)
 
     #Função de rolar o mouse na tabela
     def _rolar_mouse(self, event):
@@ -207,7 +209,130 @@ class TelaMain:
         finally:
             if sql:
                 sql.close_conexao()
+    
+    #Funcao para editar           
+    def abrir_janela_editar(self):
+        if self.id_selecionado is None:
+            messagebox.showwarning("Atenção", "Clique em uma linha para selecioná-la antes de editar.")
+            return
 
+        id_cred = self.id_selecionado
+
+        # Busca os dados do banco
+        sql = None
+        try:
+            sql = conexao.conexao_sql()
+            cursor = sql.get_cursor()
+            cursor.execute("USE passgen")
+            cursor.execute("SELECT SITE, EMAIL, SENHA FROM credenciais WHERE ID = %s", (id_cred,))
+            linha = cursor.fetchone()
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao carregar credencial: {e}")
+            return
+        finally:
+            if sql:
+                sql.close_conexao()
+
+        if linha is None:
+            messagebox.showwarning("Atenção", "Essa credencial não existe mais.")
+            self.carregar_credenciais()
+            return
+
+        site, email, senha_cripto = linha
+        try:
+            senha_atual = cripto.descriptografar_senha(senha_cripto)
+        except Exception:
+            senha_atual = ""   # se não decifrar, o usuário precisa digitar uma nova
+
+        self.original_edicao = (site, email, senha_atual)
+
+        self.top_edit = tk.Toplevel(self.master)
+        self.top_edit.title("PassGen - Editar Credencial")
+        self.top_edit.geometry("300x340")
+        self.top_edit.resizable(False, False)
+        self.top_edit.grab_set()
+
+        tk.Label(self.top_edit, text="Site/Serviço:").pack(pady=2)
+        self.edit_site = tk.Entry(self.top_edit, width=30)
+        self.edit_site.insert(0, site)
+        self.edit_site.pack(pady=2)
+
+        tk.Label(self.top_edit, text="E-mail/Usuário:").pack(pady=2)
+        self.edit_email = tk.Entry(self.top_edit, width=30)
+        self.edit_email.insert(0, email)
+        self.edit_email.pack(pady=2)
+
+        tk.Label(self.top_edit, text="Senha:").pack(pady=2)
+        self.edit_senha = tk.Entry(self.top_edit, width=30, show="*")
+        self.edit_senha.insert(0, senha_atual)
+        self.edit_senha.pack(pady=2)
+
+        # Mostrar/ocultar a senha
+        self.var_mostrar = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            self.top_edit, text="Mostrar senha", variable=self.var_mostrar,
+            command=lambda: self.edit_senha.config(show="" if self.var_mostrar.get() else "*")
+        ).pack()
+
+        tk.Button(self.top_edit, text="Gerar Senha Automática",
+                  command=self.preencher_senha_gerada_edicao).pack(pady=5)
+
+        tk.Button(self.top_edit, text="Salvar Alterações", bg="#2196F3", fg="white",
+                  command=lambda: self.salvar_edicao(id_cred)).pack(pady=10)
+
+    #Funçao para gerar uma senha na edição
+    def preencher_senha_gerada_edicao(self):
+        self.edit_senha.delete(0, tk.END)
+        self.edit_senha.insert(0, gerar_senha(12, True, True))
+        # Mostra a senha gerada para o usuário conseguir ver o que foi criado
+        self.var_mostrar.set(True)
+        self.edit_senha.config(show="")
+
+    #função para salvar a edição
+    def salvar_edicao(self, id_cred):
+        site = self.edit_site.get().strip()
+        email = self.edit_email.get().strip()
+        senha_limpa = self.edit_senha.get()
+
+        if not site or not email or not senha_limpa:
+            messagebox.showwarning("Atenção", "Preencha todos os campos!", parent=self.top_edit)
+            return
+
+        if len(site) > 100 or len(email) > 100:
+            messagebox.showwarning("Atenção", "Site e e-mail devem ter no máximo 100 caracteres.", parent=self.top_edit)
+            return
+
+        # Se não mudou ele simplesmente fecha sem alterar
+        if (site, email, senha_limpa) == self.original_edicao:
+            messagebox.showinfo("Informação", "Nenhuma alteração foi feita.", parent=self.top_edit)
+            self.top_edit.destroy()
+            return
+
+        sql = None
+        try:
+            senha_criptografada = cripto.criptografar_senha(senha_limpa)
+
+            sql = conexao.conexao_sql()
+            cursor = sql.get_cursor()
+            cursor.execute("USE passgen")
+            cursor.execute(
+                "UPDATE credenciais SET SITE = %s, EMAIL = %s, SENHA = %s WHERE ID = %s",
+                (site, email, senha_criptografada, id_cred),
+            )
+            sql.conexao.commit()
+
+            messagebox.showinfo("Sucesso", "Credencial atualizada com sucesso!", parent=self.top_edit)
+            self.top_edit.destroy()
+            self.carregar_credenciais()
+            self.selecionar_linha(id_cred)   # mantém a linha editada selecionada
+        except mysql.connector.IntegrityError:
+            messagebox.showerror("Duplicado", "Já existe uma credencial com esse e-mail.", parent=self.top_edit)
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao atualizar: {e}", parent=self.top_edit)
+        finally:
+            if sql:
+                sql.close_conexao()
+                
     #Função para excluir a credêncial
     def excluir_credencial(self):
         if self.id_selecionado is None:
