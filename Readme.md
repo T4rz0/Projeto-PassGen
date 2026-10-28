@@ -1,28 +1,22 @@
 Projeto criado por Lucas Ferreira para entrevista técnica para Agili software.
 
+
+
 PassGen é uma aplicação de geração e armazenamento de senhas ultilizando python e banco de dados mysql
 
-PassGen
-
-O que soluciona?
-- Problemas de segurança gerados ao utilizar uma única senha "universal" em vários aplicativos. Se for vazada, ela abre portas para muitos acessos.
-
-O que faz?
-
-Obrigatoriedades:
-- Gera senhas conforme a necessidade do usuário
-- Gerencia credenciais criadas pelo usuário
-- Capacidade de copiar e colar as credenciais por partes
 
 
-Desejáveis:
-- Tela de login master
-- Tela de Sign in master
-- Calcula a força da senha
-- Busca por site e filtro
-- Exportar backup criptografado
+O usuário entra no aplicativo, ao iniciar pela primeira vez ele pede para que cadastre uma senha mestre. Após isso o usuário loga com sua senha mestre que fica armazenada em um banco de dados e acessa suas credenciais salvas.
 
-O que não faz?
 
-- Quebra senha
-- Integração com a rede
+
+Para cadastrar uma credencial é só selecionar o botão criar credencial, após isso, o usuário escreve um site (se necessário), um email (se necessário) e digita ou gera uma senha que é obrigatória.
+
+
+
+O usuário pode também copiar suas credenciais para reutiliza-las em sites, domínios ou o que preferir
+
+
+
+É possível também excluir as credenciais selecionando-as e altera-las
+
