@@ -5,78 +5,133 @@ from banco import conexao
 from core import criptografia as cripto
 from core.gerador import gerar_senha
 
+# Largura (em caracteres) de cada coluna: ID, Site, E-mail, Senha
+LARGURAS = (5, 20, 26, 26)
+COR_NORMAL = "#ffffff"
+COR_SELECIONADA = "#cfe8ff"
+
+
 class TelaMain:
     def __init__(self, master):
         self.master = master
         self.master.title("PassGen - Gerenciador de Senhas")
-        self.master.geometry("700x450")
+        self.master.geometry("720x450")
         self.master.resizable(False, False)
+
+        self.id_selecionado = None
+        self.linhas = {}  # id_cred -> lista de Entry da linha
 
         # Título
         self.lbl_titulo = tk.Label(master, text="Suas Senhas Armazenadas", font=("Arial", 14, "bold"))
         self.lbl_titulo.pack(pady=10)
 
-        # Frame da Tabela (Treeview)
+        # Dica de uso
+        tk.Label(
+            master,
+            text="Clique em uma linha para selecioná-la. Selecione o texto (duplo clique = campo todo) e use Ctrl+C.",
+            fg="gray",
+        ).pack()
+
+        # Cabeçalho
+        self.frame_cabecalho = tk.Frame(master)
+        self.frame_cabecalho.pack(padx=10, pady=(8, 0), anchor="w")
+        for col, (nome, larg) in enumerate(zip(("ID", "Site", "E-mail", "Senha"), LARGURAS)):
+            tk.Label(
+                self.frame_cabecalho, text=nome, width=larg,
+                font=("Arial", 9, "bold"), bg="#e0e0e0", relief="groove"
+            ).grid(row=0, column=col, padx=1)
+
+        # Área rolável com as linhas
         self.frame_tabela = tk.Frame(master)
-        self.frame_tabela.pack(pady=5)
+        self.frame_tabela.pack(padx=10, pady=2, fill=tk.BOTH, expand=True)
 
-        # Criando a Treeview alinhada com as colunas da tabela CREDENCIAIS do seu SQL
-        self.colunas = ("ID", "Site", "E-mail", "Senha")
-        self.tabela = ttk.Treeview(self.frame_tabela, columns=self.colunas, show="headings", height=10)
-        
-        for coluna in self.colunas:
-            self.tabela.heading(coluna, text=coluna)
-            self.tabela.column(coluna, width=150, anchor="center")
-        
-        self.tabela.column("ID", width=50)
-        self.tabela.pack(side=tk.LEFT, fill=tk.BOTH)
-
-        # Scrollbar para a tabela
-        self.scrollbar = ttk.Scrollbar(self.frame_tabela, orient="vertical", command=self.tabela.yview)
+        self.canvas = tk.Canvas(self.frame_tabela, height=240, highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self.frame_tabela, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.tabela.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Frame de Ações / Botões
+        self.inner = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
+        self.inner.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.bind_all("<MouseWheel>", self._rolar_mouse)
+
+        # Botões
         self.frame_botoes = tk.Frame(master)
         self.frame_botoes.pack(pady=15)
 
         self.btn_adicionar = tk.Button(self.frame_botoes, text="Adicionar Nova Senha", width=20, bg="#4CAF50", fg="white", command=self.abrir_janela_adicionar)
         self.btn_adicionar.grid(row=0, column=0, padx=5)
 
-        self.btn_copiar = tk.Button(self.frame_botoes, text="Copiar Senha", width=15, command=self.copiar_senha)
-        self.btn_copiar.grid(row=0, column=1, padx=5)
-
         self.btn_excluir = tk.Button(self.frame_botoes, text="Excluir Selecionado", width=18, bg="#f44336", fg="white", command=self.excluir_credencial)
-        self.btn_excluir.grid(row=0, column=2, padx=5)
+        self.btn_excluir.grid(row=0, column=1, padx=5)
 
         self.btn_atualizar = tk.Button(self.frame_botoes, text="Atualizar Lista", width=15, command=self.carregar_credenciais)
-        self.btn_atualizar.grid(row=0, column=3, padx=5)
+        self.btn_atualizar.grid(row=0, column=2, padx=5)
 
-        # Carrega os dados do banco ao iniciar a tela usando a classe conexao_sql
         self.carregar_credenciais()
 
+    # ---------- Utilidades da grade ----------
+    def _rolar_mouse(self, event):
+        self.canvas.yview_scroll(int(-event.delta / 120), "units")
+
+    def _selecionar_tudo(self, event):
+        """Duplo clique / Ctrl+A: seleciona o conteúdo inteiro do campo."""
+        event.widget.select_range(0, tk.END)
+        event.widget.icursor(tk.END)
+        return "break"
+
+    def _criar_campo(self, linha, coluna, texto, largura, id_cred):
+        ent = tk.Entry(
+            self.inner, width=largura, justify="center",
+            relief="flat", borderwidth=1,
+            readonlybackground=COR_NORMAL,
+            disabledforeground="black",
+        )
+        ent.insert(0, str(texto))
+        ent.configure(state="readonly")  # selecionável e copiável, mas não editável
+        ent.grid(row=linha, column=coluna, padx=1, pady=1)
+
+        ent.bind("<Button-1>", lambda e, i=id_cred: self.selecionar_linha(i), add="+")
+        ent.bind("<Double-Button-1>", self._selecionar_tudo)
+        ent.bind("<Control-a>", self._selecionar_tudo)
+        return ent
+
+    def selecionar_linha(self, id_cred):
+        # Remove destaque da linha anterior
+        if self.id_selecionado in self.linhas:
+            for ent in self.linhas[self.id_selecionado]:
+                ent.configure(readonlybackground=COR_NORMAL)
+        self.id_selecionado = id_cred
+        for ent in self.linhas.get(id_cred, []):
+            ent.configure(readonlybackground=COR_SELECIONADA)
+
+    # ---------- Dados ----------
     def carregar_credenciais(self):
-        for item in self.tabela.get_children():
-            self.tabela.delete(item)
+        for widget in self.inner.winfo_children():
+            widget.destroy()
+        self.linhas = {}
+        self.id_selecionado = None
 
         sql = None
         try:
-            # Utilizando a sua classe de conexão padrão
             sql = conexao.conexao_sql()
             cursor = sql.get_cursor()
             cursor.execute("USE passgen")
             cursor.execute("SELECT ID, SITE, EMAIL, SENHA FROM credenciais")
             resultados = cursor.fetchall()
-            
-            for linha in resultados:
-                id_cred, site, email, senha_cripto = linha
+
+            for i, (id_cred, site, email, senha_cripto) in enumerate(resultados):
                 try:
-                    # Descriptografa utilizando a função do seu módulo criptografia.py
                     senha_limpa = cripto.descriptografar_senha(senha_cripto)
                 except Exception:
                     senha_limpa = "[Erro ao descriptografar]"
-                
-                self.tabela.insert("", "end", values=(id_cred, site, email, senha_limpa))
+
+                valores = (id_cred, site, email, senha_limpa)
+                self.linhas[id_cred] = [
+                    self._criar_campo(i, col, val, LARGURAS[col], id_cred)
+                    for col, val in enumerate(valores)
+                ]
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao carregar credenciais: {e}")
         finally:
@@ -109,7 +164,6 @@ class TelaMain:
         self.btn_salvar.pack(pady=10)
 
     def preencher_senha_gerada(self):
-        # Chamando a função diretamente do seu gerador.py (ex: comprimento 12, números=True, especiais=True)
         senha_aleatoria = gerar_senha(12, True, True)
         self.txt_senha_nova.delete(0, tk.END)
         self.txt_senha_nova.insert(0, senha_aleatoria)
@@ -125,14 +179,12 @@ class TelaMain:
 
         sql = None
         try:
-            # Criptografa a senha usando a função Fernet de criptografia.py
             senha_criptografada = cripto.criptografar_senha(senha_limpa)
 
-            # Usando os métodos da sua classe conexao_sql para persistência
             sql = conexao.conexao_sql()
             cursor = sql.get_cursor()
             cursor.execute("USE passgen")
-            
+
             comando = "INSERT INTO credenciais (SITE, EMAIL, SENHA) VALUES (%s, %s, %s)"
             sql.comando_sql(comando, (site, email, senha_criptografada))
 
@@ -145,36 +197,20 @@ class TelaMain:
             if sql:
                 sql.close_conexao()
 
-    def copiar_senha(self):
-        selected_item = self.tabela.selection()
-        if not selected_item:
-            messagebox.showwarning("Atenção", "Selecione uma credencial na tabela.")
-            return
-        
-        item_data = self.tabela.item(selected_item)
-        senha = item_data['values'][3] # Coluna da senha
-        
-        self.master.clipboard_clear()
-        self.master.clipboard_append(senha)
-        messagebox.showinfo("Sucesso", "Senha copiada para a área de transferência!")
-
     def excluir_credencial(self):
-        selected_item = self.tabela.selection()
-        if not selected_item:
-            messagebox.showwarning("Atenção", "Selecione uma credencial para excluir.")
+        if self.id_selecionado is None:
+            messagebox.showwarning("Atenção", "Clique em uma linha para selecioná-la antes de excluir.")
             return
-        
-        item_data = self.tabela.item(selected_item)
-        id_cred = item_data['values'][0]
 
-        confirmacao = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir esta credencial?")
-        if confirmacao:
+        id_cred = self.id_selecionado
+
+        if messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir esta credencial?"):
             sql = None
             try:
                 sql = conexao.conexao_sql()
                 cursor = sql.get_cursor()
                 cursor.execute("USE passgen")
-                
+
                 comando = "DELETE FROM credenciais WHERE ID = %s"
                 sql.comando_sql(comando, (id_cred,))
 
