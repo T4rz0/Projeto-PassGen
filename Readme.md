@@ -27,5 +27,12 @@ O usuário pode também copiar suas credenciais para reutiliza-las em sites, dom
 * Python 3.15.2
 * Uma conexão MySQL com o script em Projeto PassGen/banco/PassGen.sql
 
+###### **Como usar:**
+
+* Baixe o aplicativo
+* Execute o script PassGen.sql
+* Instale os requerimentos
+* Execute o main.py
+
 
 
