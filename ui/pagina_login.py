@@ -34,7 +34,7 @@ class TelaLogin:
         TelaCriarSenhaMestre(self.master)
         
 
-    def verificar_login(self, *args):
+    def verificar_login(self):
         senha = self.txt_senha.get()
         try:
             if authentic.verificar_senha(senha) == True:

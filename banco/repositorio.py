@@ -249,7 +249,4 @@ def menu_teste():
             case _:
                 print("Opção inválida. Escolha uma opção do menu.")
 
-#Main para a execução
-if __name__ == "__main__":
-    menu_teste()
      

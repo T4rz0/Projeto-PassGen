@@ -1,8 +1,3 @@
-class gerador_senha:
-    def __init__(self, comprimento, incluir_numeros, incluir_caracteres_especiais):
-        self.comprimento = comprimento
-        self.incluir_numeros = incluir_numeros
-        self.incluir_caracteres_especiais = incluir_caracteres_especiais
 
 #Função para gerar senha com numeros e caracteres 
 def gerar_senha(comprimento, incluir_numeros, incluir_caracteres_especiais):
@@ -23,4 +18,3 @@ def gerar_senha(comprimento, incluir_numeros, incluir_caracteres_especiais):
 
     senha = ''.join(random.choice(caracteres) for _ in range(comprimento))
     return senha
-  # Exemplo de uso da função

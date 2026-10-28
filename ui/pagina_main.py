@@ -1,10 +1,6 @@
-import sys
-import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# Adiciona a raiz do projeto ao caminho de busca do Python
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from banco import conexao
 from core import criptografia as cripto
 from core.gerador import gerar_senha
@@ -189,8 +185,3 @@ class TelaMain:
             finally:
                 if sql:
                     sql.close_conexao()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = TelaMain(root)
-    root.mainloop()

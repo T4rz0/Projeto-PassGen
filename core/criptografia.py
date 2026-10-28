@@ -1,9 +1,6 @@
-import sys
 import os
 from cryptography.fernet import Fernet
 
-# Adiciona a raiz do projeto (um nível acima) ao caminho de busca do Python
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from banco import conexao
 import bcrypt
 

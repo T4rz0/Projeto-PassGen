@@ -29,21 +29,16 @@ class conexao_sql:
                 password=DB_PASSWORD,
                 database=DB_NAME
             )
-            #Caso funcione exibe mensagem de sucesso
-            print("Conexão com o banco de dados estabelecida com sucesso!")
 
             #Cria um cursor para dar comandos no banco de dados
             self.cursor = self.conexao.cursor()
-            self.cursor.execute("")
+
             
 
         #Se não conectar gera exessão
         except mysql.connector.Error as erro:
             print(f"Erro ao conectar ao banco de dados: {erro}")
     
-    #Função para gerar conexao        
-    def get_conexao(self):
-         return self.conexao
     
     #Função para gerar cursor/comando
     def get_cursor(self):
@@ -64,7 +59,6 @@ class conexao_sql:
             else:
                 self.cursor.execute(comando)
             self.conexao.commit()
-            print("Comando SQL executado com sucesso!")
         except mysql.connector.Error as erro:
             print(f"Erro ao executar comando SQL: {erro}")
     

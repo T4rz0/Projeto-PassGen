@@ -11,9 +11,6 @@ CREATE TABLE CREDENCIAIS (
     CRIADO TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-SELECT * FROM credenciais;
-
-DROP TABLE credenciais;
 
 -- Criar tabela para configurações básicas como a senha master
 CREATE TABLE configuracao (
@@ -22,5 +19,3 @@ CREATE TABLE configuracao (
   VER_SENHAM blob,
   PRIMARY KEY (ID)
 );
-
-DROP TABLE configuracao;
